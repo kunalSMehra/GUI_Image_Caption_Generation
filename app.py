@@ -44,6 +44,8 @@ def idx_to_word(integer, tokenizer):
             return word
     return None
 
+
+
 # generate caption for an image
 def predict_caption(model, image, tokenizer, max_length):
     # add start tag for generation process
@@ -70,7 +72,9 @@ def predict_caption(model, image, tokenizer, max_length):
             break
 
     return in_text
- 
+
+
+
 image_path =None
 
 @app.route('/', methods=['GET'])
@@ -116,14 +120,11 @@ def predict():
     # Load the tokenizer and max length used during training
     with open(os.path.join(WORKING_DIR, 'tokenizer.pkl'), 'rb') as token_file:
         tokenizer = pickle.load(token_file)
-
+ 
     with open(os.path.join(WORKING_DIR, 'max_length.pkl'), 'rb') as maxlen_file:
         max_length_prediction = pickle.load(maxlen_file)
 
     predicted_caption=predict_caption(md, vision_features, tokenizer, max_length_prediction)
-    print(predicted_caption)
-    # display_image(image_path)
-
 
     # return render_template('index.html', prediction=predicted_caption)
     return render_template('index.html',predicted=predicted_caption)
