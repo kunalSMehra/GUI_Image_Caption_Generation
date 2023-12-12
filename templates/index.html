@@ -26,7 +26,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Classifier</title>
+    <title>ICG</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <style>
         body {
@@ -80,17 +80,34 @@
             font-size: 1.5em;
             color: #007bff; /* Change "Generated Text" color to black */
         }
+
+    .col-md-6 {
+    padding: 10px; /* Adjust the padding value as needed */
+  }
+
+    .img-equal-dimensions {
+    width: 100%; /* Set the desired width for your images */
+    height: 80%; /* Maintain aspect ratio */
+}
+
+.heading-gap {
+    margin-bottom: 30px; /* Adjust the margin-bottom value as needed */
+  }
+
+  .increased-text-size {
+    font-size: 24px; /* Adjust the font-size value as needed */
+  }
     </style>
 </head>
 
 <body>
     <div class="main-container">
         <div class="container text-center">
-            <h1>Image Classifier</h1>
+            <h1>Image Caption Generator</h1>
 
             <form action='/' method="post" enctype="multipart/form-data">
                 <input class="form-control" type="file" name="imagefile">
-                <button class="btn btn-primary" type="submit">Predict Image</button>
+                <button class="btn btn-primary" type="submit">Generate Caption</button>
             </form>
 
             {% if predicted %}
@@ -104,55 +121,40 @@
 
         <div class="container mt-5 p-4 border rounded bg-light">
             <h2 class="text-center mb-4">About Our Project</h2>
-            <p>
+            <p class="increased-text-size">
                 Our image classifier project utilizes advanced machine learning techniques to accurately predict and classify images. 
-                We have trained a sophisticated model that can recognize a wide range of objects and scenes in images.
+                We have trained a sophisticated model that can recognize a wide range of objects and scenes in images.  The backbone of our model is VGG16, a renowned deep convolutional neural network architecture. We've fine-tuned and customized the VGG16 model to suit our specific image classification needs.
             </p>
 
             <h2 class="text-center mt-4">The Model</h2>
-            <p>
-                Our model is based on state-of-the-art deep learning algorithms, allowing it to achieve high accuracy and reliability in image classification tasks. 
-                It has been trained on a diverse dataset to ensure robust performance across various scenarios.
+            <p class="increased-text-size">
+                Our model is based on the state-of-the-art VGG16 deep learning architecture, which has demonstrated exceptional performance in image recognition tasks. VGG16 is a deep convolutional neural network known for its simplicity and effectiveness. We've leveraged the power of VGG16 as the foundation for our model, enhancing its capabilities through extensive training on a diverse dataset. Our training process involved optimizing the model's parameters to achieve high accuracy and reliability in image classification tasks, ensuring robust performance across various scenarios.
             </p>
-
-            <!-- <h2 class="text-center mt-4">Sample Images</h2>
-            <div id="imageCarousel" class="carousel slide">
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <img src="file:///D:/near_by_share/mlai/ImageC/fl/img/154871781_ae77696b77.jpg" class="d-block w-100" alt="Sample Image a">
-                    </div>
-                    <div class="carousel-item">
-                        <img src="file:///D:/near_by_share/mlai/ImageC/fl/img/33108590_d685bfe51c.jpg" class="d-block w-100" alt="Sample Image b">
-                    </div>
-
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-            </div> -->
-
-            <!-- <script>
-                // JavaScript to handle shifting on click
-                const imageCarousel = new bootstrap.Carousel(document.getElementById('imageCarousel'));
-
-                // Optional: Pause the carousel on hover
-                document.getElementById('imageCarousel').addEventListener('mouseover', () => {
-                    imageCarousel.pause();
-                });
-
-                document.getElementById('imageCarousel').addEventListener('mouseout', () => {
-                    imageCarousel.cycle();
-                });
-            </script> -->
-        </div>
-       
-
         
+            <h2 class="text-center mt-4 heading-gap">Sample Images With different Data Set</h2>
+
+
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="{{ url_for('static', filename='Screenshot 2023-12-12 160723.png') }}" class="d-block img-equal-dimensions" alt="Sample Image fdvtry a">
+                    <p class="text-center mt-2" style="font-size: 24px;">Description for Image with 200 Images as the Data Samples</p>
+                </div>
+                <div class="col-md-6">
+                    <img src="{{ url_for('static', filename='Screenshot 2023-12-12 164200.png') }}" class="d-block img-equal-dimensions" alt="Sample Image csdfviuxf b">
+                    <p class="text-center mt-2" style="font-size: 24px;">Black and White Image</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <img src="{{ url_for('static', filename='Screenshot 2023-12-12 165729.png') }}" class="d-block img-equal-dimensions" alt="Sample Image fdvtry a">
+                    <p class="text-center mt-2" style="font-size: 24px;">Distorted Images</p>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <img src="{{ url_for('static', filename='Screenshot 2023-12-12 170131.png') }}" class="d-block img-equal-dimensions" alt="Sample Image csdfviuxf b">
+                    <p class="text-center mt-2" style="font-size: 24px;">Current Model Generated Caption</p>
+                </div>
+            </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
