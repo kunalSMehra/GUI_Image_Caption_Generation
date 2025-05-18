@@ -49,7 +49,7 @@ def idx_to_word(integer, tokenizer):
 # generate caption for an image
 def predict_caption(model, image, tokenizer, max_length):
     # add start tag for generation process
-    in_text = 'startseq'
+    in_text = 'startseq:'
     # iterate over the max length of sequence
     for i in range(max_length):
         # encode input sequence
