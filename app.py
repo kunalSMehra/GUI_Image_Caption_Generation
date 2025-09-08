@@ -168,12 +168,12 @@ images_dir = os.path.join(BASE_DIR, 'img')
 os.makedirs(images_dir, exist_ok=True)
 
 # Load features/captions once
-with open(os.path.join(BASE_DIR, 'features1.pkl'), 'rb') as f:
-    features = pickle.load(f)
+# with open(os.path.join(BASE_DIR, 'features1.pkl'), 'rb') as f:
+#     features = pickle.load(f)
 
-with open(os.path.join(BASE_DIR, 'captions.txt'), 'r') as f:
-    next(f)
-    captions_doc = f.read()
+# with open(os.path.join(BASE_DIR, 'captions.txt'), 'r') as f:
+#     next(f)
+#     captions_doc = f.read()
 
 # Lazy-loaded models
 vgg_model = None
