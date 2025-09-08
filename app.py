@@ -24,13 +24,13 @@ images_dir = os.path.join(os.path.dirname(__file__), 'img')
 # Create the 'images' directory if it doesn't exist
 os.makedirs(images_dir, exist_ok=True)
 
-md = load_model(r'D:\near_by_share\mlai\ImageC\modeltrain1.h5')
+md = load_model(r'D:\near_by_share\mlai\ImageC\fl\modeltrain1.h5')
 
-BASE_DIR = r'D:\near_by_share\mlai\ImageC'
-WORKING_DIR = r'D:\near_by_share\mlai\ImageC'
+BASE_DIR = r'D:\near_by_share\mlai\ImageC\fl'
+WORKING_DIR = r'D:\near_by_share\mlai\ImageC\fl'
 
 # load features from pickle
-with open(os.path.join(WORKING_DIR, 'features (1).pkl'), 'rb') as f:
+with open(os.path.join(WORKING_DIR, 'features1.pkl'), 'rb') as f:
     features = pickle.load(f)
 
 with open(os.path.join(BASE_DIR, 'captions.txt'), 'r') as f:
