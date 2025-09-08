@@ -140,8 +140,21 @@
 
 
 
+
+
+
 from flask import Flask, render_template, request, send_file
 import os
+
+# -------------------------------
+# Suppress TensorFlow logs
+# 0 = all logs, 1 = info, 2 = warning, 3 = error
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+# Force TensorFlow to use CPU only
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+# -------------------------------
+
 import pickle
 import numpy as np
 from werkzeug.utils import secure_filename
