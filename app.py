@@ -141,20 +141,8 @@
 
 
 
-
-
 from flask import Flask, render_template, request, send_file
 import os
-
-# -------------------------------
-# Suppress TensorFlow logs
-# 0 = all logs, 1 = info, 2 = warning, 3 = error
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-# Force TensorFlow to use CPU only
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-# -------------------------------
-
 import pickle
 import numpy as np
 from werkzeug.utils import secure_filename
@@ -162,40 +150,51 @@ from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.preprocessing.image import load_img, img_to_array
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Model, load_model
+import traceback
+
+# -------------------------------
+# Suppress TensorFlow logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+# -------------------------------
 
 app = Flask(__name__)
 
-# Global variables for lazy-loading
-vgg_model = None
-md = None
-
-# Get the absolute path of the 'images' directory in the current file's directory
-images_dir = os.path.join(os.path.dirname(__file__), 'img')
+# -------------------------------
+# Global variables
+# -------------------------------
+BASE_DIR = os.path.dirname(__file__)
+images_dir = os.path.join(BASE_DIR, 'img')
 os.makedirs(images_dir, exist_ok=True)
 
-# Base directories
-BASE_DIR = os.path.dirname(__file__)
-WORKING_DIR = BASE_DIR
-
-# Load features/captions once at startup (small memory footprint)
-with open(os.path.join(WORKING_DIR, 'features1.pkl'), 'rb') as f:
+# Load features/captions once
+with open(os.path.join(BASE_DIR, 'features1.pkl'), 'rb') as f:
     features = pickle.load(f)
 
 with open(os.path.join(BASE_DIR, 'captions.txt'), 'r') as f:
     next(f)
     captions_doc = f.read()
 
+# Lazy-loaded models
+vgg_model = None
+caption_model = None
+tokenizer = None
+max_length_prediction = None
 image_path = None
 
+
+# -------------------------------
 # Utility functions
+# -------------------------------
 def idx_to_word(integer, tokenizer):
     for word, index in tokenizer.word_index.items():
         if index == integer:
             return word
     return None
 
+
 def predict_caption(model, image, tokenizer, max_length):
-    in_text = 'startseq:'
+    in_text = 'startseq'   # <-- removed the colon
     for i in range(max_length):
         sequence = tokenizer.texts_to_sequences([in_text])[0]
         sequence = pad_sequences([sequence], max_length)
@@ -209,58 +208,86 @@ def predict_caption(model, image, tokenizer, max_length):
             break
     return in_text
 
-def load_models():
-    """Lazy-load models to save memory on startup."""
-    global vgg_model, md
+
+def load_all_models():
+    """Load models & tokenizer once at startup"""
+    global vgg_model, caption_model, tokenizer, max_length_prediction
+
     if vgg_model is None:
         print("Loading VGG16 model...")
         vgg_base = VGG16()
         vgg_model = Model(inputs=vgg_base.inputs, outputs=vgg_base.layers[-2].output)
-    if md is None:
-        print("Loading captioning model...")
-        md = load_model(os.path.join(WORKING_DIR, 'modeltrain1.h5'))
-    return vgg_model, md
 
+    if caption_model is None:
+        print("Loading captioning model...")
+        caption_model = load_model(os.path.join(BASE_DIR, 'modeltrain1.h5'))
+
+    if tokenizer is None:
+        print("Loading tokenizer...")
+        with open(os.path.join(BASE_DIR, 'tokenizer.pkl'), 'rb') as token_file:
+            tokenizer = pickle.load(token_file)
+
+    if max_length_prediction is None:
+        print("Loading max length...")
+        with open(os.path.join(BASE_DIR, 'max_length.pkl'), 'rb') as maxlen_file:
+            max_length_prediction = pickle.load(maxlen_file)
+
+
+# -------------------------------
 # Routes
+# -------------------------------
 @app.route('/', methods=['GET'])
-def hello_world():
+def home():
     return render_template('index.html')
+
 
 @app.route('/', methods=['POST'])
 def predict():
     global image_path
-    if 'imagefile' not in request.files:
-        return 'No file part'
-    imagefile = request.files['imagefile']
-    if imagefile.filename == '':
-        return 'No selected file'
-    filename = secure_filename(imagefile.filename)
-    image_path = os.path.join(images_dir, filename)
-    imagefile.save(image_path)
+    try:
+        if 'imagefile' not in request.files:
+            return 'No file part'
+        imagefile = request.files['imagefile']
+        if imagefile.filename == '':
+            return 'No selected file'
 
-    # Load models lazily
-    vgg_model, md_model = load_models()
+        filename = secure_filename(imagefile.filename)
+        image_path = os.path.join(images_dir, filename)
+        imagefile.save(image_path)
 
-    # Preprocess image
-    image = load_img(image_path, target_size=(224, 224))
-    image = img_to_array(image).reshape((1, 224, 224, 3))
-    image = preprocess_input(image)
-    vision_features = vgg_model.predict(image, verbose=0)
+        # Ensure models are loaded
+        load_all_models()
 
-    # Load tokenizer and max length
-    with open(os.path.join(WORKING_DIR, 'tokenizer.pkl'), 'rb') as token_file:
-        tokenizer = pickle.load(token_file)
-    with open(os.path.join(WORKING_DIR, 'max_length.pkl'), 'rb') as maxlen_file:
-        max_length_prediction = pickle.load(maxlen_file)
+        # Preprocess image
+        img = load_img(image_path, target_size=(224, 224))
+        img = img_to_array(img).reshape((1, 224, 224, 3))
+        img = preprocess_input(img)
+        vision_features = vgg_model.predict(img, verbose=0)
 
-    predicted_caption = predict_caption(md_model, vision_features, tokenizer, max_length_prediction)
+        # Generate caption
+        predicted_caption = predict_caption(
+            caption_model, vision_features, tokenizer, max_length_prediction
+        )
 
-    return render_template('index.html', predicted=predicted_caption)
+        return render_template('index.html', predicted=predicted_caption)
+
+    except Exception as e:
+        print("❌ Error in prediction:", str(e))
+        traceback.print_exc()
+        return f"Error: {str(e)}", 500
+
 
 @app.route('/get_img', methods=['POST', 'GET'])
 def get_img():
-    return send_file(image_path, as_attachment=False)
+    if image_path and os.path.exists(image_path):
+        return send_file(image_path, as_attachment=False)
+    return "No image uploaded", 404
 
+
+# -------------------------------
+# Entrypoint
+# -------------------------------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
+    load_all_models()  # <-- preload on startup
     app.run(host="0.0.0.0", port=port, debug=True)
